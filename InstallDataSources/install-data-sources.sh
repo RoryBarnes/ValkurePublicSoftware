@@ -238,8 +238,9 @@ if [[ "$PLATFORM" = "linux-x64" ]]; then
         echo -n "Re-enter password for OpenVAS admin account: " 
         read OPENVASPASS
         #echo $OPENVASPASS
-        docker-compose -f $DOCKERDIR/docker-compose.yml -p greenbone-community-edition \ exec -u gvmd gvmd gvmd --user=admin --new-password=$OPENVASPASS
-        docker-compose -f $DOCKERDIR/docker-compose.yml -p greenbone-community-edition run -d --rm gvm-tools
+        curl -f -L https://greenbone.github.io/docs/latest/_static/docker-compose-22.4.yml -o docker-compose.yml
+        sudo docker-compose -f ./docker-compose.yml -p greenbone-community-edition exec -u gvmd gvmd gvmd --user=admin --new-password=$OPENVASPASS
+        sudo docker-compose -f ./docker-compose.yml -p greenbone-community-edition run -d --rm gvm-tools
 
         if [[ -v $VALKUREDIR ]]; then
             sed -i 's@/home/stephan/Greenbone@'"$PWD"'@' $VALKUREDIR/conf/fetch.onprem.json
