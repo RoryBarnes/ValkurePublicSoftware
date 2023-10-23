@@ -217,7 +217,7 @@ else
     echo Choose the default components and installation location. 
     echo You do NOT need shortcuts, but you can create them if you like.
     ./nmap-7.94-setup
-    export "PATH=$PATH:/c/Program\ Files\ \(x86\)/Nmap"
+    # export "PATH=$PATH:/c/Program Files (x86)/Nmap"
     echo NMAP installation complete.
 fi
 
@@ -265,8 +265,6 @@ else
     read wait
 fi
 
-exit
-
 echo
 if [[ "$INSTALL_OPENVAS" = "n" ]]; then
     echo Skipping OpenVAS
@@ -295,15 +293,32 @@ else
 fi
 
 echo
-if [[ "$INSTALL_Suricata" = "n" ]]; then
+if [[ "$INSTALL_SURICATA" = "n" ]]; then
     echo Skipping Suricata
 else
-    echo Installing Suricata
-    sudo mkdir -p /etc/apt/keyrings
-    sudo curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-    sudo apt update && sudo apt upgrade
-    sudo apt-get update && sudo apt-get upgrade
-    sudo add-apt-repository ppa:oisf/suricata-stable -y
-    sudo apt update
-    sudo apt install suricata jq -y
+    echo Downloading Suricata
+    curl -fsSL  https://www.openinfosecfoundation.org/download/windows/Suricata-7.0.0-1-64bit.msi -o Suricata-7.0.0-1-64bit.msi
+    echo Installation of Suricata must be completed through its installer. 
+    echo We will now open a File Explorer window for this directory.
+    echo Please double-click the file Suricata-7.0.0-1-64bit.msi and follow the instructions
+    echo -n Press enter when ready
+    read wait
+    explorer .
+    echo Press enter after completing the Suricata installation
+    read wait
+    #export PATH="$PATH:/c/Program Files/Suricata"
+fi
+
+if [[ "$INSTALL_NMAP" = "y" || "$INSTALL_SURICATA" = "y" ]]; then
+    echo
+    echo "          **** IMPORTANT ****"
+    echo
+    echo "To finish the installation process, copy, paste and execute the following command(s):"
+    echo
+    if [[ "$INSTALL_NMAP" = "y" ]]; then
+        echo export \"PATH=\$PATH:/c/Program Files \(x86\)/Nmap\"
+    fi
+    if [[ "$INSTALL_SURICATA" = "y" ]]; then
+        echo export \"PATH=\$PATH:/c/Program Files/Suricata\"
+    fi
 fi
