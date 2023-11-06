@@ -10,6 +10,10 @@ msiexec /i suricata-installer.msi /L*V log.txt INSTALLDIR=%installDir%
 del suricata-installer.msi
 
 echo.
+echo Note the warning that you must have Npcap install with wincap compatability. Visit https://npcap.com/dist to install it.
+echo.
+
+echo.
 echo WARNING: There is one final step you must complete manually to finish the Suricata installation! 
 echo Please copy and paste the following command into this Powershell terminal: 
 
