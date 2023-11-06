@@ -6,9 +6,9 @@ This directory contains scripts to install the following data sources and config
 
 Run the executable
 
-> ./install-data-sources.sh
+> ./install-data-sources.sh [all]
 
-You will be prompted as to which data sources you'd like to install. 
+If you run with the optional "all" argument, all data sources will be installed. If not, you will be prompted as to which data sources you'd like to install. 
 
 # Windows
 
