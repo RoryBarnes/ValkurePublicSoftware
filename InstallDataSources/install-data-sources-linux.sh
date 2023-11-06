@@ -33,7 +33,7 @@ if [[ "$OSTYPE" = "linux-gnu"* ]]; then
     INSTALLER=yum
     DISTRO=RedHat
   fi
-elif [[ "$OSTYPE" = "darwin"* ]]; then
+elif [[ "${OSTYPE:0:6}" = "darwin" ]]; then
   PLATFORM=osx-x64
 elif [[ "$OSTYPE" = "msys" ]]; then
   PLATFORM=win-x64

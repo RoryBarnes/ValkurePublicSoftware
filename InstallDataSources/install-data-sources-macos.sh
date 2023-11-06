@@ -20,26 +20,70 @@ if [[ $error = 1 ]]; then
     exit 1
 fi
 
-PLATFORM=osx-x64  # Set the platform to macOS
+ok=0
+if [[ "$OSTYPE" = "linux-gnu"* ]]; then
+  PLATFORM=linux-x64
+  . /etc/os-release
+  #echo $DISTRO
+  if [[ "$NAME" = "Ubuntu" ]]; then
+    INSTALLER=apt-get
+    DISTRO=Debian
+  else
+    INSTALLER=yum
+    DISTRO=RedHat
+  fi
+elif [[ "${OSTYPE:0:6}" = "darwin" ]]; then
+  ok=1
+  PLATFORM=osx-x64
+elif [[ "$OSTYPE" = "msys" ]]; then
+  PLATFORM=win-x64
+elif [[ "$OSTYPE" = "win32" ]]; then
+  PLATFORM=win-x64
+else
+  echo "Unsupported platform!"
+  exit 1;
+fi
+
+if [[ $ok = 0 ]]; then
+    echo ERROR: Incorrect operating system for this script
+    if [[ "$PLATFORM" = "linux-x64" ]]; then
+        echo Use script install-data-sources-macos.sh
+    elif [[ "$PLATFORM" = "win-x64" ]]; then
+        echo Use the install-*-windows.bat scripts in a Powershell
+    fi
+    exit 1
+fi
 
 echo
 echo Installing Valkure Data Sources on $PLATFORM
 echo
 
-if ! command -v brew &>/dev/null; then
-    echo "Homebrew is not installed. Please install Homebrew: https://brew.sh"
-    exit 1
+if command -v brew &>/dev/null; then
+    installer="brew"
+elif command -v port &>/dev/null; then
+    installer="port"
+else
+    Neither brew nor macports is installed. Please install and try again.
 fi
 
 echo
 echo Installing required dependencies
 echo
 
-brew install curl
+if command -v curl &>/dev/null; then
+    echo curl installed
+else
+    $installer install curl
+fi
 
-DOCKERSTATUS=$(docker ps)
+if command -v docker &>/dev/null; then
+    echo docker installed
+    dockerstatus=1
+else
+    dockerstatus=0
+fi
 
-if [ -z "$DOCKERSTATUS" ]; then
+if [[ $dockerstatus = 0 ]]; then
     echo "ERROR: Docker must be running to install data sources"
     ok=0
     while [ $ok = 0 ]; do
@@ -148,7 +192,7 @@ if [[ "$INSTALL_NMAP" = "n" ]]; then
     echo "Skipping NMAP"
 else
     echo "Installing NMAP"
-    brew install nmap
+    $installer install nmap
 fi
 
 echo
@@ -156,7 +200,11 @@ if [[ "$INSTALL_KUBE" = "n" ]]; then
     echo "Skipping Kubernetes CLI"
 else
     echo "Installing Kubernetes CLI"
-    brew install kubectl
+    if [[ "$installer" = "port" ]]; then
+        $installer install kubectl-1.22
+    else    
+        $installer install kubectl
+    fi
 fi
 
 echo
@@ -164,7 +212,8 @@ if [[ "$INSTALL_AWS" = "n" ]]; then
     echo "Skipping AWS CLI"
 else
     echo "Installing AWS CLI"
-    brew install awscli
+    curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+    installer -pkg AWSCLIV2.pkg -target /
 fi
 
 echo
@@ -172,7 +221,7 @@ if [[ "$INSTALL_OSQUERY" = "n" ]]; then
     echo "Skipping OSQuery"
 else
     echo "Installing OSQuery"
-    brew install osquery
+    $installer install osquery
 fi
 
 echo
@@ -180,8 +229,8 @@ if [[ "$INSTALL_OPENVAS" = "n" ]]; then
     echo "Skipping OpenVAS"
 else
     echo "Installing OpenVAS"
-    brew install xmlstarlet
-    brew install docker-compose
+    $installer install xmlstarlet
+    $installer install docker-compose
     DOCKERDIR=/usr/local/bin
     DOCKERDEST=$DOCKERDIR/docker-compose
     DOCKERVER=1.29.0
@@ -201,6 +250,23 @@ else
         sed -i '' "s@/home/stephan/Greenbone@$PWD@" $VALKUREDIR/conf/fetch.onprem.json
     fi
 fi
+
+if [[ "$INSTALL_Suricata" = "n" ]]; then
+    echo "Skipping Suricata"
+else
+    echo "Installing Suricata"
+    if [[ "$installer" = "brew" ]]; then
+        brew install suricata jq
+    else
+        curl -f -L https://www.openinfosecfoundation.org/download/suricata-7.0.2.tar.gz
+        tar xzvf suricata-7.0.2.tar.gz
+        cd suricata-7.0.2
+        ./configure
+        make
+        make install
+        port install jq
+fi
+
 
 echo
 echo "Installation completed on macOS."
