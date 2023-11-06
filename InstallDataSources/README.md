@@ -14,9 +14,9 @@ If you run with the optional "all" argument, all data sources will be installed.
 
 On Windows, you must install each program individually in the Powershell (administrator privielges are *not* necessary). Run each script with the command:
 
-> .\install-<datasource>-windows.bat
+> .\install-\<datasource\>-windows.bat
 
-where <datasource> = aws, nmap, etc. Note that after each installation, you must reboot your machine.
+where \<datasource\> = aws, nmap, etc. Note that after each installation, you must reboot your machine.
 
 # Apple
 
