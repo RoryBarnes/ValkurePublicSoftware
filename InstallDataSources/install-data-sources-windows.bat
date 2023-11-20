@@ -174,33 +174,49 @@ echo ************************************************************************
 
 echo.
 
-echo To do so, search for ^"Edit the System Environment Variables^" in the Windows
-echo toolbar. Click on the option to open the ^"System Properties^" window. Then
-echo click the ^"Environment Variables^" button in the bottom right. In the new window 
-echo that pops up, select ^"Path^", and then click the echo ^"Edit^" button. Add
-echo the following directories by pressing the ^"New^" button: 
+echo To do add directories to your path, please complete the following steps:
 echo.
+echo   1. Search for ^"Edit the System Environment Variables^" in the Windows toolbar
+echo   2. Click on the ^"best match^", which will open the ^"System Properties^" window 
+echo   3. Click the ^"Environment Variables^" button in the bottom right
+echo   4. In the ^"Environment Variables^" window that pops up, select ^"Path^"
+echo   5. Click the ^"Edit^" button to open the ^"Edit environment variable^" window
+echo   6. Press the ^"New^" button
+echo   7. Manually enter the following absolute paths, one per line:
+echo.
+
+(
+    echo Add the following directories to your path:
+    echo.
+) > install.log
+
 
 if /i "%INSTALL_NMAP%"=="y" (
-    echo !nmapDir:^"=!
+    echo      !nmapDir:^"=!
+    echo !nmapDir:^"=! >> install.log
 )
 if "%INSTALL_AWS%"=="y" (
-    echo !awsDir:^"=!
+    echo      !awsDir:^"=!
+    echo !awsDir:^"=! >> install.log
 )
 if "%INSTALL_KUBE%"=="y" (
-    echo !kubeDir:^"=!
+    echo      !kubeDir:^"=!
+    echo !kubeDir:^"=! >> install.log
 )
 if "%INSTALL_OSQUERY%"=="y" (
-    echo !osqueryDir:^"=!
+    echo      !osqueryDir:^"=!
+    echo !osqueryDir:^"=! >> install.log
 )
 if "%INSTALL_SURICATA%"=="y" (
-    echo !suricataDir:^"=!
+    echo      !suricataDir:^"=!
+    echo !suricataDir:^"=! >> install.log
 )
 
 echo.
-echo After adding the directories click the ^"OK^" button. You will need to start a 
-echo new Powershell terminal for these changes to take effect.
+echo   8. After adding the directories click the ^"OK^" button to apply the changes 
+echo   9. Open a new Powershell window 
 echo.
+echo Note that this list of directories is also saved in the file ^"install.log^".
 
 endlocal
 
