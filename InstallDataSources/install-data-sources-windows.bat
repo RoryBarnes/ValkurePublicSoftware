@@ -1,180 +1,227 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal EnableDelayedExpansion
 
-set "arg=%~1"
-set "error=0"
+if not "%2"=="" goto error    
 
-if "%~2" neq "" set "error=1"
-
-if "%arg%" neq "all" set "error=1"
-
-if "%error%"=="1" (
-    echo Usage: %0 [all], where "all" is optional
-    goto Error
+if not "%1"=="" (
+    echo %1
+    if "%1"=="all" (
+        set all=1
+        echo Installing all data sources
+    ) else (
+        goto error
+    )
 )
 
-if "%arg%" == "all" (
-    set all=1
-) else (
-    set all=0
-)
-
-echo !all!
-
-if !all!==1 (
+if "%all%"=="1" (
     set "INSTALL_NMAP=y"
     set "INSTALL_AWS=y"
     set "INSTALL_KUBE=y"
     set "INSTALL_OPENVAS=y"
     set "INSTALL_OSQUERY=y"
 ) else (
+    echo Choose data sources to install
+
     :NMAP
-    set /p INSTALL_NMAP=Install NMAP [y/n]: 
-    echo You entered: %INSTALL_NMAP%
-    @REM if "%INSTALL_NMAP%"=="y" (
-    @REM     set "INSTALL_NMAP=y"
-    @REM ) else if "%INSTALL_NMAP%"=="n" (
-    @REM     set "INSTALL_NMAP=n"
-    @REM ) else (
-    @REM     echo Invalid input.
-    @REM     goto NMAP
-    @REM)
+    set /p INSTALL_NMAP="Install NMAP [y/n]: "
+    if not "!INSTALL_NMAP!"=="y" (
+        if not "!INSTALL_NMAP!"=="n" (
+            echo Invalid input.
+            goto NMAP
+        )
+    )
 
-    set "ok=0"
     :AWS
-    echo | set /p="Install AWS CLI [y/n]: "
-    set /p INSTALL_AWS=
-    if /i "!INSTALL_AWS!"=="y" (
-        set "INSTALL_AWS=y"
-        set "ok=1"
-    ) else if /i "!INSTALL_AWS!"=="n" (
-        set "INSTALL_AWS=n"
-        set "ok=1"
-    ) else (
-        echo Invalid input.
-        goto AWS
+    set /p INSTALL_AWS="Install AWS CLI [y/n]: "
+    if not "!INSTALL_AWS!"=="y" (
+        if not "!INSTALL_AWS!"=="n" (
+            echo Invalid input.
+            goto AWS
+        )
     )
 
-    set "ok=0"
     :KUBE
-    echo | set /p="Install Kubernetes CLI [y/n]: "
-    set /p INSTALL_KUBE=
-    if /i "!INSTALL_KUBE!"=="y" (
-        set "INSTALL_KUBE=y"
-        set "ok=1"
-    ) else if /i "!INSTALL_KUBE!"=="n" (
-        set "INSTALL_KUBE=n"
-        set "ok=1"
-    ) else (
-        echo Invalid input.
-        goto KUBE
+    set /p INSTALL_KUBE="Install Kubernetes CLI [y/n]: "
+    if not "!INSTALL_KUBE!"=="y" (
+        if not "!INSTALL_KUBE!"=="n" (
+            echo Invalid input.
+            goto KUBE
+        )
     )
 
-    set "ok=0"
     :OSQUERY
-    echo | set /p="Install OSQuery [y/n]: "
-    set /p INSTALL_OSQUERY=
-    if /i "!INSTALL_OSQUERY!"=="y" (
-        set "INSTALL_OSQUERY=y"
-        set "ok=1"
-    ) else if /i "!INSTALL_OSQUERY!"=="n" (
-        set "INSTALL_OSQUERY=n"
-        set "ok=1"
-    ) else (
-        echo Invalid input.
-        goto OSQUERY
+    set /p INSTALL_OSQUERY="Install OSQuery [y/n]: "
+    if not "!INSTALL_OSQUERY!"=="y" (
+         if not "!INSTALL_OSQUERY!"=="n" (
+            echo Invalid input.
+            goto OSQUERY
+        )
     )
 
-    set "ok=0"
-    :OPENVAS
-    echo | set /p="Install OpenVAS (Requires 20 GB) [y/n]: "
-    set /p INSTALL_OPENVAS=
-    if /i "!INSTALL_OPENVAS!"=="y" (
-        set "INSTALL_OPENVAS=y"
-        set "ok=1"
-    ) else if /i "!INSTALL_OPENVAS!"=="n" (
-        set "INSTALL_OPENVAS=n"
-        set "ok=1"
-    ) else (
-        echo Invalid input.
-        goto OPENVAS
-    )
+    @REM :OPENVAS
+    @REM set /p INSTALL_OPENVAS="Install OpenVAS [y/n]: "
+    @REM if not "!INSTALL_OPENVAS!"=="y" (
+    @REM     if not "!INSTALL_OPENVAS!"=="n" (
+    @REM         echo Invalid input.
+    @REM         goto OPENVAS
+    @REM     )
+    @REM )
 
-    set "ok=0"
     :SURICATA
-    echo | set /p="Install Suricata [y/n]: "
-    set /p INSTALL_SURICATA=
-    if /i "!INSTALL_SURICATA!"=="y" (
-        set "INSTALL_SURICATA=y"
-        set "ok=1"
-    ) else if /i "!INSTALL_SURICATA!"=="n" (
-        set "INSTALL_SURICATA=n"
-        set "ok=1"
-    ) else (
-        echo Invalid input.
-        goto SURICATA
+    set /p INSTALL_SURICATA="Install Suricata [y/n]: "
+    if not "!INSTALL_SURICATA!"=="y" (
+        if not "!INSTALL_SURICATA!"=="n" (
+            echo Invalid input.
+            goto SURICATA
+        )
     )
 )
 
-@REM echo Installation choices:
-@REM echo INSTALL_NMAP: !INSTALL_NMAP!
-@REM echo INSTALL_AWS: !INSTALL_AWS!
-@REM echo INSTALL_KUBE: !INSTALL_KUBE!
-@REM echo INSTALL_OSQUERY: !INSTALL_OSQUERY!
-@REM echo INSTALL_OPENVAS: !INSTALL_OPENVAS!
-@REM echo INSTALL_SURICATA: !INSTALL_SURICATA!
+echo.
 
-if /i "!INSTALL_NMAP!"=="n" (
+if /i "%INSTALL_NMAP%"=="n" (
     echo Skipping NMAP.
 ) else (
-    echo Installing NMAP
-    set "nmapUrl=https://nmap.org/dist/nmap-7.92-setup.exe"
-    set "installDir=C:\Program Files\Nmap"
-    curl -o nmap-setup.exe %nmapUrl%
-    echo Installing Nmap. Please select aall default options, except you do not need to install icons.
-    start /wait nmap-setup.exey
+    echo Installing NMAP.
+    set nmapUrl="https://nmap.org/dist/nmap-7.92-setup.exe"
+    set nmapDir="C:\Program Files (x86)\Nmap"
+    curl -o nmap-setup.exe !nmapUrl!
+    echo NMAP installation is completed via their installer. Please select all default options, except you do not need to install icons.
+    echo If prompted, upgrade your Npcap application.
+    pause
+    start /wait nmap-setup.exe
     del nmap-setup.exe
-    setx PATH "%installDir%;%PATH%"
     echo NMAP installation complete.
 )
 
-if /i "!INSTALL_AWS!"=="n" (
-    echo Skipping NMAP.
+echo.
+
+if /i "%INSTALL_AWS%"=="n" (
+    echo Skipping AWS.
 ) else (
     echo Installing AWS CLI.
-    curl -o awscliv2.zip "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"
+    set awsUrl="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"
+    set awsDir="C:\Program Files\Amazon\AWSCLIV2"
+    curl -o awscliv2.zip !awsUrl!
     unzip awscliv2.zip
     .\aws\install
     echo AWS CLI installation complete.
 )
 
-if /i "!INSTALL_KUBE!"=="n" (
+echo.
+
+if /i "%INSTALL_KUBE%"=="n" (
     echo Skipping Kube.
 ) else (
-    set KUBECTL_VERSION=v1.22.2
-    set INSTALL_DIR=C:\kubectl
-    if not exist "!INSTALL_DIR!" (
-        mkdir "!INSTALL_DIR!"
+    echo Installing KubeCTL.
+    set KUBECTL_VERSION=v1.28.3
+    set kubeDir="%CD%%\KubeCTL"
+    curl -LO https://dl.k8s.io/release/!KUBECTL_VERSION!/bin/windows/amd64/kubectl.exe
+     if not exist "!kubeDir!" (
+        mkdir "!kubeDir!"
     )
-    curl -LO https://dl.k8s.io/release/%KUBECTL_VERSION%/bin/windows/amd64/kubectl.exe
-    move kubectl.exe "!INSTALL_DIR!"
-    setx PATH "%PATH%;!INSTALL_DIR!"
+    Move kubectl.exe KubeCTL\kubectl.exe
     echo KubeCTL installed. You may need to restart your command prompt to use it.
 )
 
-if /i "!INSTALL_OSQUERY!"=="n" (
+echo.
+
+if /i "%INSTALL_OSQUERY%"=="n" (
     echo Skipping OSQuery
 ) else (
     echo Installing OSQuery
-    set "osqueryUrl=https://osquery.io/downloads/win32/osquery-5.1.0.1701.msi"
-    set "installDir=C:\Program Files\osquery"
-    curl -o osquery-installer.msi %osqueryUrl%
-    msiexec /i osquery-installer.msi /qn
+    set osqueryUrl="https://pkg.osquery.io/windows/osquery-5.10.2.msi"
+    set osqueryDir="C:\Program Files\osquery"
+    curl -L -o osquery-installer.msi !osqueryUrl!
+    echo OSQuery installation is completed via their installer. Please select all default options, except you do not need to install icons.
+    pause
+    msiexec /i osquery-installer.msi
     del osquery-installer.msi
-    setx PATH "%installDir%;%PATH%"
     echo OSQuery installation complete.
 )
+
+echo.
+
+if /i "%INSTALL_SURICATA%"=="n" (
+    echo Skipping Suricata
+) else (
+    echo Installing Suricata
+    set suricataUrl="https://www.openinfosecfoundation.org/downloads/windows/Suricata-6.0.15-1-64bit.msi"
+    set suricataDir="C:\Suricata"
+    curl -o suricata-installer.msi !suricataUrl!
+    echo Suricata installation is completed via their installer. Please select all default options, and note you need Npcap if not already installed.
+    pause
+    msiexec /i suricata-installer.msi /L*V log.txt INSTALLDIR=!suricataDir!
+    del suricata-installer.msi
+    echo OSQuery installation complete.
+)
+
+echo.
+
+@REM if /i "%INSTALL_OPENVAS%"=="n" (
+@REM     echo Skipping OpenVAS
+@REM ) else (
+@REM     echo Please see OpenVAS documentation for Windows installation.
+@REM     pause
+@REM )
+
+echo.
+echo ************************************************************************
+echo *                                                                      *
+echo * To complete the installation, you must add directories to your PATH^^! *
+echo *                                                                      *
+echo ************************************************************************
+
+echo.
+
+echo To do add directories to your path, please complete the following steps:
+echo.
+echo   1. Search for ^"Edit the System Environment Variables^" in the Windows toolbar
+echo   2. Click on the ^"best match^", which will open the ^"System Properties^" window 
+echo   3. Click the ^"Environment Variables^" button in the bottom right
+echo   4. In the ^"Environment Variables^" window that pops up, select ^"Path^"
+echo   5. Click the ^"Edit^" button to open the ^"Edit environment variable^" window
+echo   6. Press the ^"New^" button
+echo   7. Manually enter the following absolute paths, one per line:
+echo.
+
+(
+    echo Add the following directories to your path:
+    echo.
+) > install.log
+
+
+if /i "%INSTALL_NMAP%"=="y" (
+    echo      !nmapDir:^"=!
+    echo !nmapDir:^"=! >> install.log
+)
+if "%INSTALL_AWS%"=="y" (
+    echo      !awsDir:^"=!
+    echo !awsDir:^"=! >> install.log
+)
+if "%INSTALL_KUBE%"=="y" (
+    echo      !kubeDir:^"=!
+    echo !kubeDir:^"=! >> install.log
+)
+if "%INSTALL_OSQUERY%"=="y" (
+    echo      !osqueryDir:^"=!
+    echo !osqueryDir:^"=! >> install.log
+)
+if "%INSTALL_SURICATA%"=="y" (
+    echo      !suricataDir:^"=!
+    echo !suricataDir:^"=! >> install.log
+)
+
+echo.
+echo   8. After adding the directories click the ^"OK^" button to apply the changes 
+echo   9. Open a new Powershell window 
+echo.
+echo Note that this list of directories is also saved in the file ^"install.log^".
+
 endlocal
 
+exit /b 0
+
 :Error
+echo Usage: %0 [all], where "all" is optional
 exit /b 1
