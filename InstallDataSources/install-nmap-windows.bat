@@ -2,7 +2,7 @@
 setlocal
 
 set "nmapUrl=https://nmap.org/dist/nmap-7.92-setup.exe"
-set "installDir=C:\Program Files\Nmap"
+set "installDir=C:\Program Files (x86)\Nmap"
 curl -o nmap-setup.exe %nmapUrl%
 echo NMAP installation is completed via their installer. Please select all default options, except you do not need to install icons.
 echo If prompted, upgrade your Npcap application.
