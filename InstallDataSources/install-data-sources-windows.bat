@@ -103,7 +103,7 @@ if /i "%INSTALL_AWS%"=="n" (
     set awsUrl="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"
     set awsDir="C:\Program Files\Amazon\AWSCLIV2"
     curl -o awscliv2.zip !awsUrl!
-    unzip awscliv2.zip
+    Expand-Archive awscliv2.zip
     .\aws\install
     echo AWS CLI installation complete.
 )
