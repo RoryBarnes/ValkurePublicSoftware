@@ -23,15 +23,6 @@ fi
 ok=0
 if [[ "$OSTYPE" = "linux-gnu"* ]]; then
   PLATFORM=linux-x64
-  . /etc/os-release
-  #echo $DISTRO
-  if [[ "$NAME" = "Ubuntu" ]]; then
-    INSTALLER=apt-get
-    DISTRO=Debian
-  else
-    INSTALLER=yum
-    DISTRO=RedHat
-  fi
 elif [[ "${OSTYPE:0:6}" = "darwin" ]]; then
   ok=1
   PLATFORM=osx-x64
@@ -47,9 +38,9 @@ fi
 if [[ $ok = 0 ]]; then
     echo ERROR: Incorrect operating system for this script
     if [[ "$PLATFORM" = "linux-x64" ]]; then
-        echo Use script install-data-sources-macos.sh
+        echo Use install-data-sources-macos.sh
     elif [[ "$PLATFORM" = "win-x64" ]]; then
-        echo Use the install-*-windows.bat scripts in a Powershell
+        echo Use install-data-sources-windows.bat scripts in a Powershell
     fi
     exit 1
 fi
@@ -173,6 +164,18 @@ else
             ok=1
         fi
     done
+
+    ok=0
+    while [ $ok = 0 ]; do
+        read -p "Install Suricata [y/n]: " INSTALL_SURICATA
+        if [[ "$INSTALL_SURICATA" = "y" || "$INSTALL_SURICATA" = "yes" || "$INSTALL_KUBE" = "Y" || "$INSTALL_SURICATA" = "YES" || "$INSTALL_SURICATA" = "Yes" ]]; then
+            INSTALL_SURICATA="y"
+            ok=1
+        elif [[ "$INSTALL_SURICATA" = "n" || "$INSTALL_SURICATA" = "no" || "$INSTALL_SURICATA" = "N" || "$INSTALL_SURICATA" = "NO" || "$INSTALL_SURICATA" = "No" ]]; then
+            INSTALL_SURICATA="n"
+            ok=1
+        fi
+    done
 fi
 
 if [[ "$INSTALL_OPENVAS" = "y" ]]; then
@@ -193,6 +196,7 @@ if [[ "$INSTALL_NMAP" = "n" ]]; then
 else
     echo "Installing NMAP"
     $installer install nmap
+    echo NMAP installation complete
 fi
 
 echo
@@ -205,6 +209,7 @@ else
     else    
         $installer install kubectl
     fi
+    echo KubeCTL installation complete
 fi
 
 echo
@@ -214,6 +219,7 @@ else
     echo "Installing AWS CLI"
     curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
     installer -pkg AWSCLIV2.pkg -target /
+    echo AWS CLI installation complete
 fi
 
 echo
@@ -221,7 +227,9 @@ if [[ "$INSTALL_OSQUERY" = "n" ]]; then
     echo "Skipping OSQuery"
 else
     echo "Installing OSQuery"
-    $installer install osquery
+    curl -L https://pkg.osquery.io/darwin/osquery-5.10.2.pkg -o osquery-5.10.2.pkg
+    installer -pkg ~/Downloads/osquery-5.10.2.pkg -target /
+    echo OSQuery installation complete
 fi
 
 echo
@@ -249,22 +257,27 @@ else
     if [[ -n $VALKUREDIR ]]; then
         sed -i '' "s@/home/stephan/Greenbone@$PWD@" $VALKUREDIR/conf/fetch.onprem.json
     fi
+    echo OpenVAS installation complete
 fi
 
-if [[ "$INSTALL_Suricata" = "n" ]]; then
+echo
+if [[ "$INSTALL_SURICATA" = "n" ]]; then
     echo "Skipping Suricata"
 else
     echo "Installing Suricata"
     if [[ "$installer" = "brew" ]]; then
         brew install suricata jq
     else
-        curl -f -L https://www.openinfosecfoundation.org/download/suricata-7.0.2.tar.gz
+        port install jansson
+        curl -f -L https://www.openinfosecfoundation.org/download/suricata-7.0.2.tar.gz -o suricata-7.0.2.tar.gz
         tar xzvf suricata-7.0.2.tar.gz
         cd suricata-7.0.2
         ./configure
         make
         make install
         port install jq
+    fi
+    echo Suricata installation complete
 fi
 
 
