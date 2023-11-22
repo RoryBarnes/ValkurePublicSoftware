@@ -182,7 +182,7 @@ if [[ "$INSTALL_OPENVAS" = "y" ]]; then
     ok=0
     while [ $ok = 0 ]; do
         read -p "Enter full path to ValkureFetch directory [press enter if not using Valkure]: " VALKUREDIR
-        if [[ -e $VALKUREDIR/valkure || -z $VALKUREDIR ]]; then
+        if [[ -e $VALKUREDIR/valkure-agent || -z $VALKUREDIR ]]; then
             ok=1
         else
             echo "ERROR: Invalid directory!"
