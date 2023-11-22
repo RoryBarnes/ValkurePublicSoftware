@@ -67,42 +67,42 @@ else
     $installer install curl
 fi
 
-if command -v docker &>/dev/null; then
-    echo docker installed
-    dockerstatus=1
-else
-    dockerstatus=0
-fi
+# if command -v docker &>/dev/null; then
+#     echo docker installed
+#     dockerstatus=1
+# else
+#     dockerstatus=0
+# fi
 
-if [[ $dockerstatus = 0 ]]; then
-    echo "ERROR: Docker must be running to install data sources"
-    ok=0
-    while [ $ok = 0 ]; do
-        read -p "Do you want to install Docker now [y/n]: " INSTALL_DOCKER
-        if [[ "$INSTALL_DOCKER" = "y" || "$INSTALL_DOCKER" = "yes" || "$INSTALL_DOCKER" = "Y" || "$INSTALL_DOCKER" = "YES" || "$INSTALL_DOCKER" = "Yes" ]]; then
-            ok=1
-            INSTALL_DOCKER="y"
-        elif [[ "$INSTALL_DOCKER" = "n" || "$INSTALL_DOCKER" = "no" || "$INSTALL_DOCKER" = "N" || "$INSTALL_DOCKER" = "NO" || "$INSTALL_DOCKER" = "No" ]]; then
-            INSTALL_DOCKER="n"
-            ok=1
-        fi
-    done
+# if [[ $dockerstatus = 0 ]]; then
+#     echo "ERROR: Docker must be running to install data sources"
+#     ok=0
+#     while [ $ok = 0 ]; do
+#         read -p "Do you want to install Docker now [y/n]: " INSTALL_DOCKER
+#         if [[ "$INSTALL_DOCKER" = "y" || "$INSTALL_DOCKER" = "yes" || "$INSTALL_DOCKER" = "Y" || "$INSTALL_DOCKER" = "YES" || "$INSTALL_DOCKER" = "Yes" ]]; then
+#             ok=1
+#             INSTALL_DOCKER="y"
+#         elif [[ "$INSTALL_DOCKER" = "n" || "$INSTALL_DOCKER" = "no" || "$INSTALL_DOCKER" = "N" || "$INSTALL_DOCKER" = "NO" || "$INSTALL_DOCKER" = "No" ]]; then
+#             INSTALL_DOCKER="n"
+#             ok=1
+#         fi
+#     done
 
-    if [[ "$INSTALL_DOCKER" = "y" ]]; then
-        # Install Docker for macOS
-        open -a Docker
-    else
-        echo "Data sources not installed"
-        exit 1
-    fi
-fi
+#     if [[ "$INSTALL_DOCKER" = "y" ]]; then
+#         # Install Docker for macOS
+#         open -a Docker
+#     else
+#         echo "Data sources not installed"
+#         exit 1
+#     fi
+# fi
 
 echo
 if [[ $all = 1 ]]; then
     INSTALL_NMAP="y"
     INSTALL_AWS="y"
     INSTALL_KUBE="y"
-    INSTALL_OPENVAS="y"
+    # INSTALL_OPENVAS="y"
     INSTALL_OSQUERY="y"
 else
     ok=0
@@ -153,17 +153,17 @@ else
         fi
     done
 
-    ok=0
-    while [ $ok = 0 ]; do
-        read -p "Install OpenVAS (Requires 20 GB) [y/n]: " INSTALL_OPENVAS
-        if [[ "$INSTALL_OPENVAS" = "y" || "$INSTALL_OPENVAS" = "yes" || "$INSTALL_OPENVAS" = "Y" || "$INSTALL_OPENVAS" = "YES" || "$INSTALL_OPENVAS" = "Yes" ]]; then
-            INSTALL_OPENVAS="y"
-            ok=1
-        elif [[ "$INSTALL_OPENVAS" = "n" || "$INSTALL_OPENVAS" = "no" || "$INSTALL_OPENVAS" = "N" || "$INSTALL_OPENVAS" = "NO" || "$INSTALL_OPENVAS" = "No" ]]; then
-            INSTALL_OPENVAS="n"
-            ok=1
-        fi
-    done
+    # ok=0
+    # while [ $ok = 0 ]; do
+    #     read -p "Install OpenVAS (Requires 20 GB) [y/n]: " INSTALL_OPENVAS
+    #     if [[ "$INSTALL_OPENVAS" = "y" || "$INSTALL_OPENVAS" = "yes" || "$INSTALL_OPENVAS" = "Y" || "$INSTALL_OPENVAS" = "YES" || "$INSTALL_OPENVAS" = "Yes" ]]; then
+    #         INSTALL_OPENVAS="y"
+    #         ok=1
+    #     elif [[ "$INSTALL_OPENVAS" = "n" || "$INSTALL_OPENVAS" = "no" || "$INSTALL_OPENVAS" = "N" || "$INSTALL_OPENVAS" = "NO" || "$INSTALL_OPENVAS" = "No" ]]; then
+    #         INSTALL_OPENVAS="n"
+    #         ok=1
+    #     fi
+    # done
 
     ok=0
     while [ $ok = 0 ]; do
@@ -178,17 +178,17 @@ else
     done
 fi
 
-if [[ "$INSTALL_OPENVAS" = "y" ]]; then
-    ok=0
-    while [ $ok = 0 ]; do
-        read -p "Enter full path to ValkureFetch directory [press enter if not using Valkure]: " VALKUREDIR
-        if [[ -e $VALKUREDIR/valkure || -z $VALKUREDIR ]]; then
-            ok=1
-        else
-            echo "ERROR: Invalid directory!"
-        fi
-    done
-fi
+# if [[ "$INSTALL_OPENVAS" = "y" ]]; then
+#     ok=0
+#     while [ $ok = 0 ]; do
+#         read -p "Enter full path to ValkureFetch directory [press enter if not using Valkure]: " VALKUREDIR
+#         if [[ -e $VALKUREDIR/valkure || -z $VALKUREDIR ]]; then
+#             ok=1
+#         else
+#             echo "ERROR: Invalid directory!"
+#         fi
+#     done
+# fi
 
 echo
 if [[ "$INSTALL_NMAP" = "n" ]]; then
@@ -232,33 +232,33 @@ else
     echo OSQuery installation complete
 fi
 
-echo
-if [[ "$INSTALL_OPENVAS" = "n" ]]; then
-    echo "Skipping OpenVAS"
-else
-    echo "Installing OpenVAS"
-    $installer install xmlstarlet
-    $installer install docker-compose
-    DOCKERDIR=/usr/local/bin
-    DOCKERDEST=$DOCKERDIR/docker-compose
-    DOCKERVER=1.29.0
-    sudo curl -L https://github.com/docker/compose/releases/download/${DOCKERVER}/docker-compose-$(uname -s)-$(uname -m) -o $DOCKERDEST
-    sudo chmod 755 $DOCKERDEST
+# echo
+# if [[ "$INSTALL_OPENVAS" = "n" ]]; then
+#     echo "Skipping OpenVAS"
+# else
+#     echo "Installing OpenVAS"
+#     $installer install xmlstarlet
+#     $installer install docker-compose
+#     DOCKERDIR=/usr/local/bin
+#     DOCKERDEST=$DOCKERDIR/docker-compose
+#     DOCKERVER=1.29.0
+#     sudo curl -L https://github.com/docker/compose/releases/download/${DOCKERVER}/docker-compose-$(uname -s)-$(uname -m) -o $DOCKERDEST
+#     sudo chmod 755 $DOCKERDEST
 
-    curl -f -O https://greenbone.github.io/docs/latest/_static/setup-and-start-greenbone-community-edition.sh && chmod u+x setup-and-start-greenbone-community-edition.sh
-    ./setup-and-start-greenbone-community-edition.sh
-    echo -n "Re-enter password for OpenVAS admin account: "
-    read OPENVASPASS
-    # echo $OPENVASPASS
-    curl -f -L https://greenbone.github.io/docs/latest/_static/docker-compose-22.4.yml -o docker-compose.yml
-    docker-compose -f ./docker-compose.yml -p greenbone-community-edition exec -u gvmd gvmd gvmd --user=admin --new-password=$OPENVASPASS
-    docker-compose -f ./docker-compose.yml -p greenbone-community-edition run -d --rm gvm-tools
+#     curl -f -O https://greenbone.github.io/docs/latest/_static/setup-and-start-greenbone-community-edition.sh && chmod u+x setup-and-start-greenbone-community-edition.sh
+#     ./setup-and-start-greenbone-community-edition.sh
+#     echo -n "Re-enter password for OpenVAS admin account: "
+#     read OPENVASPASS
+#     # echo $OPENVASPASS
+#     curl -f -L https://greenbone.github.io/docs/latest/_static/docker-compose-22.4.yml -o docker-compose.yml
+#     docker-compose -f ./docker-compose.yml -p greenbone-community-edition exec -u gvmd gvmd gvmd --user=admin --new-password=$OPENVASPASS
+#     docker-compose -f ./docker-compose.yml -p greenbone-community-edition run -d --rm gvm-tools
 
-    if [[ -n $VALKUREDIR ]]; then
-        sed -i '' "s@/home/stephan/Greenbone@$PWD@" $VALKUREDIR/conf/fetch.onprem.json
-    fi
-    echo OpenVAS installation complete
-fi
+#     if [[ -n $VALKUREDIR ]]; then
+#         sed -i '' "s@/home/stephan/Greenbone@$PWD@" $VALKUREDIR/conf/fetch.onprem.json
+#     fi
+#     echo OpenVAS installation complete
+# fi
 
 echo
 if [[ "$INSTALL_SURICATA" = "n" ]]; then
