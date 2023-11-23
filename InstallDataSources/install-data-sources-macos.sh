@@ -51,20 +51,20 @@ echo
 
 if command -v brew &>/dev/null; then
     installer="brew"
+    echo Installing via brew.
 elif command -v port &>/dev/null; then
     installer="port"
+    echo Installing via macports
 else
     Neither brew nor macports is installed. Please install and try again.
 fi
 
-echo
-echo Installing required dependencies
-echo
-
 if command -v curl &>/dev/null; then
     echo curl installed
 else
+    echo Installing curl.
     $installer install curl
+    echo Finished installing curl.
 fi
 
 # if command -v docker &>/dev/null; then
