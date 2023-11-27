@@ -115,12 +115,12 @@ if /i "%INSTALL_KUBE%"=="n" (
 ) else (
     echo Installing KubeCTL.
     set KUBECTL_VERSION=v1.28.3
-    set kubeDir="%CD%%\KubeCTL"
+    set kubeDir="C:\Program Files\Amazon\KubeCTL"
     curl -LO https://dl.k8s.io/release/!KUBECTL_VERSION!/bin/windows/amd64/kubectl.exe
-     if not exist "!kubeDir!" (
-        mkdir "!kubeDir!"
+    if not exist !kubeDir! (
+        mkdir !kubeDir!
     )
-    Move kubectl.exe KubeCTL\kubectl.exe
+    Move kubectl.exe !kubeDir!
     echo KubeCTL installed. You may need to restart your command prompt to use it.
 )
 
@@ -165,58 +165,8 @@ echo.
 @REM     pause
 @REM )
 
+echo Installation(s) complete.
 echo.
-echo ************************************************************************
-echo *                                                                      *
-echo * To complete the installation, you must add directories to your PATH^^! *
-echo *                                                                      *
-echo ************************************************************************
-
-echo.
-
-echo To do add directories to your path, please complete the following steps:
-echo.
-echo   1. Search for ^"Edit the System Environment Variables^" in the Windows toolbar
-echo   2. Click on the ^"best match^", which will open the ^"System Properties^" window 
-echo   3. Click the ^"Environment Variables^" button in the bottom right
-echo   4. In the ^"Environment Variables^" window that pops up, select ^"Path^"
-echo   5. Click the ^"Edit^" button to open the ^"Edit environment variable^" window
-echo   6. Press the ^"New^" button
-echo   7. Manually enter the following absolute paths, one per line:
-echo.
-
-(
-    echo Add the following directories to your path:
-    echo.
-) > install.log
-
-
-if /i "%INSTALL_NMAP%"=="y" (
-    echo      !nmapDir:^"=!
-    echo !nmapDir:^"=! >> install.log
-)
-if "%INSTALL_AWS%"=="y" (
-    echo      !awsDir:^"=!
-    echo !awsDir:^"=! >> install.log
-)
-if "%INSTALL_KUBE%"=="y" (
-    echo      !kubeDir:^"=!
-    echo !kubeDir:^"=! >> install.log
-)
-if "%INSTALL_OSQUERY%"=="y" (
-    echo      !osqueryDir:^"=!
-    echo !osqueryDir:^"=! >> install.log
-)
-if "%INSTALL_SURICATA%"=="y" (
-    echo      !suricataDir:^"=!
-    echo !suricataDir:^"=! >> install.log
-)
-
-echo.
-echo   8. After adding the directories click the ^"OK^" button to apply the changes 
-echo   9. Open a new Powershell window 
-echo.
-echo Note that this list of directories is also saved in the file ^"install.log^".
 
 endlocal
 
