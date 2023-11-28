@@ -245,8 +245,8 @@ if [[ "$INSTALL_KUBE" = "n" ]]; then
 else
     echo Installing Kubernetes CLI
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    sudo mv kubectl /usr/local/bin
-    sudo chmod u+x /usr/local/bin/kubectl
+    sudo mv kubectl /usr/bin
+    sudo chmod u+x /usr/bin/kubectl
 fi
 
 # #sudo $INSTALLER update -y
