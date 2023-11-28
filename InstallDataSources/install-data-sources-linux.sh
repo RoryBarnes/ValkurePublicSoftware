@@ -101,7 +101,7 @@ echo
 echo Installing Valkure Data Sources on $DISTRO distribution of $PLATFORM.
 echo
 
-sudo apt install curl
+sudo $INSTALLER install curl
 
 echo
 if [[ $all = 1 ]]; then
