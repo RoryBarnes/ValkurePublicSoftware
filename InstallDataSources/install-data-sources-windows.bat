@@ -100,11 +100,10 @@ if /i "%INSTALL_AWS%"=="n" (
     echo Skipping AWS.
 ) else (
     echo Installing AWS CLI.
-    set awsUrl="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"
+    set awsUrl="https://awscli.amazonaws.com/AWSCLIV2.msi"
     set awsDir="C:\Program Files\Amazon\AWSCLIV2"
     curl -o awscliv2.zip !awsUrl!
-    Expand-Archive awscliv2.zip
-    .\aws\install
+    msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
     echo AWS CLI installation complete.
 )
 
