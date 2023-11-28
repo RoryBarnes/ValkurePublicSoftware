@@ -358,8 +358,8 @@ else
         curl -OL https://www.openinfosecfoundation.org/download/suricata-6.0.0.tar.gz
         tar xvf suricata-6.0.0.tar.gz
         cd suricata-6.0.0
-        ./configure --sysconfdir=/etc --localstatedir=/var
-        make
+        sudo ./configure --sysconfdir=/etc --localstatedir=/var
+        sudo make
         sudo make install
         sudo make install-conf
     fi
