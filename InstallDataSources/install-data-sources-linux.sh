@@ -22,17 +22,27 @@ fi
 
 ok=0
 if [[ "$OSTYPE" = "linux-gnu"* ]]; then
-  PLATFORM=linux-x64
-  ok=1
-  . /etc/os-release
-  #echo $DISTRO
-  if [[ "$NAME" = "Ubuntu" ]]; then
-    INSTALLER=apt-get
-    DISTRO=Debian
-  else
-    INSTALLER=yum
-    DISTRO=RedHat
-  fi
+    PLATFORM=linux-x64
+    ok=1
+
+    if [ -e /etc/os-release ]; then
+        # Source the os-release file
+        . /etc/os-release
+
+        # Check if the ID variable is present
+        if [ -n "$ID" ]; then
+            
+            # Check if the ID is either "ubuntu" or "debian"
+            if [ "$ID" == "ubuntu" ] || [ "$ID" == "debian" ]; then
+                INSTALLER=apt-get
+                DISTRO=Debian
+
+            elif [ "$ID" == "rhel" ] || [ "$ID" == "amzn" ]; then
+                INSTALLER=yum
+                DISTRO=RedHat
+            fi
+        fi
+    fi
 elif [[ "${OSTYPE:0:6}" = "darwin" ]]; then
   PLATFORM=osx-x64
 elif [[ "$OSTYPE" = "msys" ]]; then
@@ -41,55 +51,57 @@ elif [[ "$OSTYPE" = "win32" ]]; then
   PLATFORM=win-x64
 else
   echo "Unsupported platform!"
-  exit 1;
+  echo
+  exit 1
 fi
 
 if [[ $ok = 0 ]]; then
+    echo
     echo ERROR: Incorrect operating system for this script
     if [[ "$PLATFORM" = "osx-x64" ]]; then
         echo Use script install-data-sources-macos.sh
     elif [[ "$PLATFORM" = "win-x64" ]]; then
         echo Use script install-data-sources-windows.sh
     fi
+    echo
+    exit 1
 fi
 
-echo
-echo Installing Valkure Data Sources on $PLATFORM-$DISTRO
-echo
 
-sudo apt install curl
+if [[ "$DISTRO" = "unknown" ]]; then
+    echo
+    echo "Unable to determine the operating system."
+    echo
+    echo "  1. apt-get"
+    echo "  2. yum"
+    echo "  3. other"
+    echo
 
-DOCKERSTATUS=$(sudo docker ps)
-
-if [ -z "$DOCKERSTATUS" ]; then
-    echo ERROR: Docker must be running to install data sources
     ok=0
     while [ $ok = 0 ]
     do
-        echo -n "Do you want to install Docker now [y/n]: "
-        read INSTALL_DOCKER
-        if [[ "$INSTALL_DOCKER" = "y" || "$INSTALL_DOCKER" = "yes" || "$INSTALL_DOCKER" = "Y" || "$INSTALL_DOCKER" = "YES" || "$INSTALL_DOCKER" = "Yes" ]]; then
-            INSTALL_NMAP="y"
+        echo -n "Enter the installer you use [1,2,3]: "
+        read INSTALL_ID
+        if [[ "$INSTALL_ID" = "1" ]]; then
+            INSTALLER=apt-get
             ok=1
-        elif [[ "$INSTALL_DOCKER" = "n" || "$INSTALL_DOCKER" = "no" || "$INSTALL_DOCKER" = "N" || "$INSTALL_DOCKER" = "NO" || "$INSTALL_DOCKER" = "No" ]]; then
-            INSTALL_DOCKER="n"
+        elif [[ "$INSTALL_ID" = "2" ]]; then
+            INSTALLER=yum
             ok=1
+        elif [[ "$INSTALL_ID" = "3" ]]; then
+            echo
+            echo "Sorry, this script will not work with your Linux distribution."
+            echo
+            exit 1
         fi
     done
-
-    if [[ "$INSTALL_DOCKER" = "y" ]]; then
-        curl -fsSL https://get.docker.com -o get-docker.sh
-        sudo sh get-docker.sh
-        if [[ "$DISTRO" = "Debian" ]]; then
-            sudo service docker start
-        elif [[ "$DISTRO" = "RedHat" ]]; then
-            sudo systemctl start docker
-        fi
-    else
-        echo Data sources not installed
-        exit 1
-    fi
 fi
+
+echo
+echo Installing Valkure Data Sources on $DISTRO distribution of $PLATFORM.
+echo
+
+sudo $INSTALLER install curl
 
 echo
 if [[ $all = 1 ]]; then
@@ -113,19 +125,24 @@ else
         fi
     done
 
-    ok=0
-    while [ $ok = 0 ]
-    do
-        echo -n "Install AWS CLI [y/n]: "
-        read INSTALL_AWS
-        if [[ "$INSTALL_AWS" = "y" || "$INSTALL_AWS" = "yes" || "$INSTALL_AWS" = "Y" || "$INSTALL_AWS" = "YES" || "$INSTALL_AWS" = "Yes" ]]; then
-            INSTALL_AWS="y"
-            ok=1
-        elif [[ "$INSTALL_AWS" = "n" || "$INSTALL_AWS" = "no" || "$INSTALL_AWS" = "N" || "$INSTALL_AWS" = "NO" || "$INSTALL_AWS" = "No" ]]; then
-            INSTALL_AWS="n"
-            ok=1
-        fi
-    done
+    if [[ "$ID" = "amzn" ]]; then
+        echo Running on AWS, not installing AWS CLI
+        INSTALL_AWS="n"
+    else
+        ok=0
+        while [ $ok = 0 ]
+        do
+            echo -n "Install AWS CLI [y/n]: "
+            read INSTALL_AWS
+            if [[ "$INSTALL_AWS" = "y" || "$INSTALL_AWS" = "yes" || "$INSTALL_AWS" = "Y" || "$INSTALL_AWS" = "YES" || "$INSTALL_AWS" = "Yes" ]]; then
+                INSTALL_AWS="y"
+                ok=1
+            elif [[ "$INSTALL_AWS" = "n" || "$INSTALL_AWS" = "no" || "$INSTALL_AWS" = "N" || "$INSTALL_AWS" = "NO" || "$INSTALL_AWS" = "No" ]]; then
+                INSTALL_AWS="n"
+                ok=1
+            fi
+        done
+    fi
 
     ok=0
     while [ $ok = 0 ]
@@ -174,22 +191,17 @@ else
     do
         echo -n "Install Suricata [y/n]: "
         read INSTALL_SURICATA
-        if [[ "$INSTALL_SURICATA" = "y" || "$INSTALL_SURICATA" = "yes" || "$INSTALL_SURICATA" = "Y" || "$INSTALL_OPENVAS" = "YES" || "$INSTALL_OPENVAS" = "Yes" ]]; then
+        if [[ "$INSTALL_SURICATA" = "y" || "$INSTALL_SURICATA" = "yes" || "$INSTALL_SURICATA" = "Y" || "$INSTALL_SURICATA" = "YES" || "$INSTALL_SURICATA" = "Yes" ]]; then
             INSTALL_SURICATA="y"
             ok=1
-        elif [[ "$INSTALL_SURICATA" = "n" || "$INSTALL_SURICATA" = "no" || "$INSTALL_SURICATA" = "N" || "$INSTALL_OPENVAS" = "NO" || "$INSTALL_OPENVAS" = "No" ]]; then
+        elif [[ "$INSTALL_SURICATA" = "n" || "$INSTALL_SURICATA" = "no" || "$INSTALL_SURICATA" = "N" || "$INSTALL_SURICATA" = "NO" || "$INSTALL_SURICATAS" = "No" ]]; then
             INSTALL_SURICATA="n"
             ok=1
         fi
     done
 fi
 
-# echo INSTALL_NMAP: $INSTALL_NMAP
-# echo INSTALL_AWS: $INSTALL_AWS
-# echo INSTALL_KUBE: $INSTALL_KUBE
-# echo INSTALL_OSQUERY: $INSTALL_OSQUERY
-# echo INSTALL_OPENVAS: $INSTALL_OPENVAS
-# exit
+echo Suricata selected
 
 if [[ "$INSTALL_OPENVAS" = "y" ]]; then
     ok=0
@@ -197,77 +209,120 @@ if [[ "$INSTALL_OPENVAS" = "y" ]]; then
     do
         echo -n "Enter full path to ValkureFetch directory [press enter if not using Valkure]: "
         read VALKUREDIR
-        if [[ -e $VALKUREDIR/valkure || -z $VALKUREDIR ]]; then
+        if [[ -e $VALKUREDIR/valkure-agent || -z $VALKUREDIR ]]; then
             ok=1
         else
             echo ERROR: Invalid directory!
         fi
     done
+
+    DOCKERSTATUS=$(sudo docker ps)
+    if [ -z "$DOCKERSTATUS" ]; then
+        echo
+        echo OpenVAS requires Docker to be running.
+        ok=0
+        while [ $ok = 0 ]
+        do
+            echo -n "Do you want to install Docker now [y/n]: "
+            read INSTALL_DOCKER
+            if [[ "$INSTALL_DOCKER" = "y" || "$INSTALL_DOCKER" = "yes" || "$INSTALL_DOCKER" = "Y" || "$INSTALL_DOCKER" = "YES" || "$INSTALL_DOCKER" = "Yes" ]]; then
+                INSTALL_NMAP="y"
+                ok=1
+            elif [[ "$INSTALL_DOCKER" = "n" || "$INSTALL_DOCKER" = "no" || "$INSTALL_DOCKER" = "N" || "$INSTALL_DOCKER" = "NO" || "$INSTALL_DOCKER" = "No" ]]; then
+                INSTALL_DOCKER="n"
+                ok=1
+            fi
+        done
+    fi
 fi
 
 echo
-if [[ "$PLATFORM" = "linux-x64" ]]; then
-    if [[ "$INSTALL_NMAP" = "n" ]]; then
-        echo Skipping NMAP
+if [[ "$INSTALL_NMAP" = "n" ]]; then
+    echo Skipping NMAP
+else
+    echo Installing NAMP
+    sudo $INSTALLER install nmap
+fi
+
+echo
+if [[ "$INSTALL_KUBE" = "n" ]]; then
+    echo Skipping Kubernetes CLI
+else
+    echo Installing Kubernetes CLI
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    sudo mv kubectl /usr/bin
+    sudo chmod u+x /usr/bin/kubectl
+fi
+
+# #sudo $INSTALLER update -y
+# sudo $INSTALLER install -y ca-certificates curl
+# #sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg > https://packages.cloud.google.com/apt/doc/apt-key.gpg
+# curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+# echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg]  https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+# #sudo $INSTALLER update -y
+# sudo $INSTALLER install -y kubectl
+
+echo
+if [[ "$INSTALL_AWS" = "n" ]]; then
+    echo Skipping AWS CLI
+else
+    echo Installing AWS CLI
+    sudo hwclock -s
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
+fi
+
+echo
+if [[ "$INSTALL_OSQUERY" = "n" ]]; then
+    echo Skipping OSQuery
+else
+    echo Installing OSQuery
+    if [[ "$INSTALLER" = "apt-get" ]]; then
+        export OSQUERY_KEY=1484120AC4E9F8A1A577AEEE97A80C63C9D8B80B
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys $OSQUERY_KEY
+        sudo add-apt-repository 'deb [arch=amd64] https://pkg.osquery.io/deb deb main' -y
+        sudo apt-get install osquery
     else
-        echo Installing NAMP
-        sudo $INSTALLER install nmap
-        #sudo $INSTALLER update
+        sudo yum install yum-utils
+        curl -L https://pkg.osquery.io/rpm/GPG | sudo tee /etc/pki/rpm-gpg/RPM-GPG-KEY-osquery
+        sudo yum-config-manager --add-repo https://pkg.osquery.io/rpm/osquery-s3-rpm.repo
+        sudo yum-config-manager --enable osquery-s3-rpm-repo
+        sudo yum install osquery
+    fi
+fi
+
+echo
+if [[ "$INSTALL_OPENVAS" = "n" ]]; then
+    echo Skipping OpenVAS
+else
+    echo Installing OpenVAS
+    
+    if [[ "$INSTALL_DOCKER" = "y" ]]; then
+        echo Installing Docker
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sudo sh get-docker.sh
     fi
 
-    echo
-    if [[ "$INSTALL_KUBE" = "n" ]]; then
-        echo Skipping Kubernetes CLI
-    else
-        echo Installing Kubernetes CLI
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        sudo mv kubectl /usr/local/bin
-        sudo chmod u+x /usr/local/bin/kubectl
-    fi
-
-    # #sudo $INSTALLER update -y
-    # sudo $INSTALLER install -y ca-certificates curl
-    # #sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg > https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    # curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-    # echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg]  https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-    # #sudo $INSTALLER update -y
-    # sudo $INSTALLER install -y kubectl
-
-    echo
-    if [[ "$INSTALL_AWS" = "n" ]]; then
-        echo Skipping AWS CLI
-    else
-        echo Installing AWS CLI
-        sudo hwclock -s
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-    fi
-
-    echo
-    if [[ "$INSTALL_OSQUERY" = "n" ]]; then
-        echo Skipping OSQuery
-    else
-        echo Installing OSQuery
+    if [ -z "$DOCKERSTATUS" ]; then
+        DockerRunning=0
         if [[ "$DISTRO" = "Debian" ]]; then
-            export OSQUERY_KEY=1484120AC4E9F8A1A577AEEE97A80C63C9D8B80B
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys $OSQUERY_KEY
-            sudo add-apt-repository 'deb [arch=amd64] https://pkg.osquery.io/deb deb main' -y
-            sudo apt-get install osquery
+            sudo service docker start
+        elif [[ "$DISTRO" = "RedHat" ]]; then
+            sudo systemctl start docker
         else
-            sudo yum install yum-utils
-            curl -L https://pkg.osquery.io/rpm/GPG | sudo tee /etc/pki/rpm-gpg/RPM-GPG-KEY-osquery
-            sudo yum-config-manager --add-repo https://pkg.osquery.io/rpm/osquery-s3-rpm.repo
-            sudo yum-config-manager --enable osquery-s3-rpm-repo
-            sudo yum install osquery
+            echo Unable to stat Docker service.
         fi
-    fi
 
-    echo
-    if [[ "$INSTALL_OPENVAS" = "n" ]]; then
-        echo Skipping OpenVAS
+        NewDockerStatus=$(sudo docker ps)
+        if [ -z "$DOCKERSTATUS" ]; then
+            echo Unable to start Docker. Skipping OpenVas
+        fi
     else
-        echo Installing OpenVAS
+        DockerRunning=1
+    fi    
+
+    if [[ $DockerRunning = 1 ]]; then
         sudo apt install xmlstarlet
         sudo $INSTALLER remove docker-compose
         DOCKERDIR=/usr/bin
@@ -289,12 +344,14 @@ if [[ "$PLATFORM" = "linux-x64" ]]; then
             sed -i 's@/home/stephan/Greenbone@'"$PWD"'@' $VALKUREDIR/conf/fetch.onprem.json
         fi
     fi
+fi
 
-    echo
-    if [[ "$INSTALL_Suricata" = "n" ]]; then
-        echo Skipping Suricata
-    else
-        echo Installing Suricata
+echo
+if [[ "$INSTALL_SURICATA" = "n" ]]; then
+    echo Skipping Suricata
+else
+    echo Installing Suricata
+    if [[ "$DISTRO" = "Debian" ]]; then
         sudo mkdir -p /etc/apt/keyrings
         sudo curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
         sudo apt update && sudo apt upgrade
@@ -302,5 +359,14 @@ if [[ "$PLATFORM" = "linux-x64" ]]; then
         sudo add-apt-repository ppa:oisf/suricata-stable -y
         sudo apt update
         sudo apt install suricata jq -y
+    else
+        curl -OL https://www.openinfosecfoundation.org/download/suricata-5.0.0.tar.gz
+        tar xvf suricata-5.0.0.tar.gz
+        cd suricata-5.0.0
+        sudo ./configure --sysconfdir=/etc --localstatedir=/var
+        sudo make
+        sudo make install
+        sudo make install-conf
     fi
 fi
+
