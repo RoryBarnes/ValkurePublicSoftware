@@ -125,7 +125,7 @@ else
         fi
     done
 
-    if [[ "$ID" = "amzn"]]; then
+    if [[ "$ID" = "amzn" ]]; then
         echo Running on AWS, not installing AWS CLI
         INSTALL_AWS="n"
     else
