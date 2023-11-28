@@ -125,19 +125,24 @@ else
         fi
     done
 
-    ok=0
-    while [ $ok = 0 ]
-    do
-        echo -n "Install AWS CLI [y/n]: "
-        read INSTALL_AWS
-        if [[ "$INSTALL_AWS" = "y" || "$INSTALL_AWS" = "yes" || "$INSTALL_AWS" = "Y" || "$INSTALL_AWS" = "YES" || "$INSTALL_AWS" = "Yes" ]]; then
-            INSTALL_AWS="y"
-            ok=1
-        elif [[ "$INSTALL_AWS" = "n" || "$INSTALL_AWS" = "no" || "$INSTALL_AWS" = "N" || "$INSTALL_AWS" = "NO" || "$INSTALL_AWS" = "No" ]]; then
-            INSTALL_AWS="n"
-            ok=1
-        fi
-    done
+    if [[ "$ID" = "amzn"]]; then
+        echo Running on AWS, not installing AWS CLI
+        INSTALL_AWS="n"
+    else
+        ok=0
+        while [ $ok = 0 ]
+        do
+            echo -n "Install AWS CLI [y/n]: "
+            read INSTALL_AWS
+            if [[ "$INSTALL_AWS" = "y" || "$INSTALL_AWS" = "yes" || "$INSTALL_AWS" = "Y" || "$INSTALL_AWS" = "YES" || "$INSTALL_AWS" = "Yes" ]]; then
+                INSTALL_AWS="y"
+                ok=1
+            elif [[ "$INSTALL_AWS" = "n" || "$INSTALL_AWS" = "no" || "$INSTALL_AWS" = "N" || "$INSTALL_AWS" = "NO" || "$INSTALL_AWS" = "No" ]]; then
+                INSTALL_AWS="n"
+                ok=1
+            fi
+        done
+    fi
 
     ok=0
     while [ $ok = 0 ]
