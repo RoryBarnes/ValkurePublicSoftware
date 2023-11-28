@@ -355,9 +355,9 @@ else
         sudo apt update
         sudo apt install suricata jq -y
     else
-        curl -OL https://www.openinfosecfoundation.org/download/suricata-6.0.0.tar.gz
-        tar xvf suricata-6.0.0.tar.gz
-        cd suricata-6.0.0
+        curl -OL https://www.openinfosecfoundation.org/download/suricata-5.0.0.tar.gz
+        tar xvf suricata-5.0.0.tar.gz
+        cd suricata-5.0.0
         sudo ./configure --sysconfdir=/etc --localstatedir=/var
         sudo make
         sudo make install
