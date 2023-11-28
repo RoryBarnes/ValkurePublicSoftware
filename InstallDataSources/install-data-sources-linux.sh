@@ -103,38 +103,6 @@ echo
 
 sudo apt install curl
 
-DOCKERSTATUS=$(sudo docker ps)
-
-if [ -z "$DOCKERSTATUS" ]; then
-    echo ERROR: Docker must be running to install data sources
-    ok=0
-    while [ $ok = 0 ]
-    do
-        echo -n "Do you want to install Docker now [y/n]: "
-        read INSTALL_DOCKER
-        if [[ "$INSTALL_DOCKER" = "y" || "$INSTALL_DOCKER" = "yes" || "$INSTALL_DOCKER" = "Y" || "$INSTALL_DOCKER" = "YES" || "$INSTALL_DOCKER" = "Yes" ]]; then
-            INSTALL_NMAP="y"
-            ok=1
-        elif [[ "$INSTALL_DOCKER" = "n" || "$INSTALL_DOCKER" = "no" || "$INSTALL_DOCKER" = "N" || "$INSTALL_DOCKER" = "NO" || "$INSTALL_DOCKER" = "No" ]]; then
-            INSTALL_DOCKER="n"
-            ok=1
-        fi
-    done
-
-    if [[ "$INSTALL_DOCKER" = "y" ]]; then
-        curl -fsSL https://get.docker.com -o get-docker.sh
-        sudo sh get-docker.sh
-        if [[ "$DISTRO" = "Debian" ]]; then
-            sudo service docker start
-        elif [[ "$DISTRO" = "RedHat" ]]; then
-            sudo systemctl start docker
-        fi
-    else
-        echo Data sources not installed
-        exit 1
-    fi
-fi
-
 echo
 if [[ $all = 1 ]]; then
     INSTALL_NMAP="y"
@@ -218,15 +186,17 @@ else
     do
         echo -n "Install Suricata [y/n]: "
         read INSTALL_SURICATA
-        if [[ "$INSTALL_SURICATA" = "y" || "$INSTALL_SURICATA" = "yes" || "$INSTALL_SURICATA" = "Y" || "$INSTALL_OPENVAS" = "YES" || "$INSTALL_OPENVAS" = "Yes" ]]; then
+        if [[ "$INSTALL_SURICATA" = "y" || "$INSTALL_SURICATA" = "yes" || "$INSTALL_SURICATA" = "Y" || "$INSTALL_SURICATA" = "YES" || "$INSTALL_SURICATA" = "Yes" ]]; then
             INSTALL_SURICATA="y"
             ok=1
-        elif [[ "$INSTALL_SURICATA" = "n" || "$INSTALL_SURICATA" = "no" || "$INSTALL_SURICATA" = "N" || "$INSTALL_OPENVAS" = "NO" || "$INSTALL_OPENVAS" = "No" ]]; then
+        elif [[ "$INSTALL_SURICATA" = "n" || "$INSTALL_SURICATA" = "no" || "$INSTALL_SURICATA" = "N" || "$INSTALL_SURICATA" = "NO" || "$INSTALL_SURICATAS" = "No" ]]; then
             INSTALL_SURICATA="n"
             ok=1
         fi
     done
 fi
+
+echo Suricata selected
 
 if [[ "$INSTALL_OPENVAS" = "y" ]]; then
     ok=0
@@ -234,12 +204,31 @@ if [[ "$INSTALL_OPENVAS" = "y" ]]; then
     do
         echo -n "Enter full path to ValkureFetch directory [press enter if not using Valkure]: "
         read VALKUREDIR
-        if [[ -e $VALKUREDIR/valkure || -z $VALKUREDIR ]]; then
+        if [[ -e $VALKUREDIR/valkure-agent || -z $VALKUREDIR ]]; then
             ok=1
         else
             echo ERROR: Invalid directory!
         fi
     done
+
+    DOCKERSTATUS=$(sudo docker ps)
+    if [ -z "$DOCKERSTATUS" ]; then
+        echo
+        echo OpenVAS requires Docker to be running.
+        ok=0
+        while [ $ok = 0 ]
+        do
+            echo -n "Do you want to install Docker now [y/n]: "
+            read INSTALL_DOCKER
+            if [[ "$INSTALL_DOCKER" = "y" || "$INSTALL_DOCKER" = "yes" || "$INSTALL_DOCKER" = "Y" || "$INSTALL_DOCKER" = "YES" || "$INSTALL_DOCKER" = "Yes" ]]; then
+                INSTALL_NMAP="y"
+                ok=1
+            elif [[ "$INSTALL_DOCKER" = "n" || "$INSTALL_DOCKER" = "no" || "$INSTALL_DOCKER" = "N" || "$INSTALL_DOCKER" = "NO" || "$INSTALL_DOCKER" = "No" ]]; then
+                INSTALL_DOCKER="n"
+                ok=1
+            fi
+        done
+    fi
 fi
 
 echo
@@ -303,25 +292,52 @@ if [[ "$INSTALL_OPENVAS" = "n" ]]; then
     echo Skipping OpenVAS
 else
     echo Installing OpenVAS
-    sudo apt install xmlstarlet
-    sudo $INSTALLER remove docker-compose
-    DOCKERDIR=/usr/bin
-    DOCKERDEST=$DOCKERDIR/docker-compose
-    DOCKERVER=1.29.0
-    sudo curl -L https://github.com/docker/compose/releases/download/${DOCKERVER}/docker-compose-$(uname -s)-$(uname -m) -o $DOCKERDEST
-    sudo chmod 755 $DOCKERDEST
+    
+    if [[ "$INSTALL_DOCKER" = "y" ]]; then
+        echo Installing Docker
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sudo sh get-docker.sh
+    fi
 
-    curl -f -O https://greenbone.github.io/docs/latest/_static/setup-and-start-greenbone-community-edition.sh && chmod u+x setup-and-start-greenbone-community-edition.sh
-    sudo ./setup-and-start-greenbone-community-edition.sh
-    echo -n "Re-enter password for OpenVAS admin account: " 
-    read OPENVASPASS
-    #echo $OPENVASPASS
-    curl -f -L https://greenbone.github.io/docs/latest/_static/docker-compose-22.4.yml -o docker-compose.yml
-    sudo docker-compose -f ./docker-compose.yml -p greenbone-community-edition exec -u gvmd gvmd gvmd --user=admin --new-password=$OPENVASPASS
-    sudo docker-compose -f ./docker-compose.yml -p greenbone-community-edition run -d --rm gvm-tools
+    if [ -z "$DOCKERSTATUS" ]; then
+        DockerRunning=0
+        if [[ "$DISTRO" = "Debian" ]]; then
+            sudo service docker start
+        elif [[ "$DISTRO" = "RedHat" ]]; then
+            sudo systemctl start docker
+        else
+            echo Unable to stat Docker service.
+        fi
 
-    if [[ -v $VALKUREDIR ]]; then
-        sed -i 's@/home/stephan/Greenbone@'"$PWD"'@' $VALKUREDIR/conf/fetch.onprem.json
+        NewDockerStatus=$(sudo docker ps)
+        if [ -z "$DOCKERSTATUS" ]; then
+            echo Unable to start Docker. Skipping OpenVas
+        fi
+    else
+        DockerRunning=1
+    fi    
+
+    if [[ $DockerRunning = 1 ]]; then
+        sudo apt install xmlstarlet
+        sudo $INSTALLER remove docker-compose
+        DOCKERDIR=/usr/bin
+        DOCKERDEST=$DOCKERDIR/docker-compose
+        DOCKERVER=1.29.0
+        sudo curl -L https://github.com/docker/compose/releases/download/${DOCKERVER}/docker-compose-$(uname -s)-$(uname -m) -o $DOCKERDEST
+        sudo chmod 755 $DOCKERDEST
+
+        curl -f -O https://greenbone.github.io/docs/latest/_static/setup-and-start-greenbone-community-edition.sh && chmod u+x setup-and-start-greenbone-community-edition.sh
+        sudo ./setup-and-start-greenbone-community-edition.sh
+        echo -n "Re-enter password for OpenVAS admin account: " 
+        read OPENVASPASS
+        #echo $OPENVASPASS
+        curl -f -L https://greenbone.github.io/docs/latest/_static/docker-compose-22.4.yml -o docker-compose.yml
+        sudo docker-compose -f ./docker-compose.yml -p greenbone-community-edition exec -u gvmd gvmd gvmd --user=admin --new-password=$OPENVASPASS
+        sudo docker-compose -f ./docker-compose.yml -p greenbone-community-edition run -d --rm gvm-tools
+
+        if [[ -v $VALKUREDIR ]]; then
+            sed -i 's@/home/stephan/Greenbone@'"$PWD"'@' $VALKUREDIR/conf/fetch.onprem.json
+        fi
     fi
 fi
 
@@ -330,12 +346,22 @@ if [[ "$INSTALL_Suricata" = "n" ]]; then
     echo Skipping Suricata
 else
     echo Installing Suricata
-    sudo mkdir -p /etc/apt/keyrings
-    sudo curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-    sudo apt update && sudo apt upgrade
-    sudo apt-get update && sudo apt-get upgrade
-    sudo add-apt-repository ppa:oisf/suricata-stable -y
-    sudo apt update
-    sudo apt install suricata jq -y
+    if [[ "$DISTRO" = "Debian" ]]; then
+        sudo mkdir -p /etc/apt/keyrings
+        sudo curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+        sudo apt update && sudo apt upgrade
+        sudo apt-get update && sudo apt-get upgrade
+        sudo add-apt-repository ppa:oisf/suricata-stable -y
+        sudo apt update
+        sudo apt install suricata jq -y
+    else
+        curl -OL https://www.openinfosecfoundation.org/download/suricata-6.0.0.tar.gz
+        tar xvf suricata-5.0.0.tar.gz
+        cd suricata-5.0.0
+        ./configure --sysconfdir=/etc --localstatedir=/var
+        make
+        sudo make install
+        sudo make install-conf
+    fi
 fi
 
