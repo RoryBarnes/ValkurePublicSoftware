@@ -86,7 +86,7 @@ if /i "%INSTALL_NMAP%"=="n" (
     set nmapUrl="https://nmap.org/dist/nmap-7.92-setup.exe"
     set nmapDir="C:\Program Files (x86)\Nmap"
     curl -o nmap-setup.exe !nmapUrl!
-    echo NMAP installation is completed via their installer. Please select all default options, except you do not need to install icons.
+    echo NMAP installation will be completed via their installer. Please select all default options, except you do not need to install icons.
     echo If prompted, upgrade your Npcap application.
     pause
     start /wait nmap-setup.exe
@@ -102,7 +102,8 @@ if /i "%INSTALL_AWS%"=="n" (
     echo Installing AWS CLI.
     set awsUrl="https://awscli.amazonaws.com/AWSCLIV2.msi"
     set awsDir="C:\Program Files\Amazon\AWSCLIV2"
-    curl -o awscliv2.zip !awsUrl!
+    echo AWS CLI installation will be completed via their installer. Please select all default options.
+    pause
     msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
     echo AWS CLI installation complete.
 )
@@ -114,13 +115,13 @@ if /i "%INSTALL_KUBE%"=="n" (
 ) else (
     echo Installing KubeCTL.
     set KUBECTL_VERSION=v1.28.3
-    set kubeDir="C:\Program Files\Amazon\KubeCTL"
+    set kubeDir="~\KubeCTL"
     curl -LO https://dl.k8s.io/release/!KUBECTL_VERSION!/bin/windows/amd64/kubectl.exe
     if not exist !kubeDir! (
         mkdir !kubeDir!
     )
     Move kubectl.exe !kubeDir!
-    echo KubeCTL installed. You may need to restart your command prompt to use it.
+    echo KubeCTL installed in !KubeDir!. 
 )
 
 echo.
