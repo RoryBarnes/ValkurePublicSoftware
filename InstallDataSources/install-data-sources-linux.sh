@@ -101,7 +101,7 @@ echo
 echo Installing Valkure Data Sources on $DISTRO distribution of $PLATFORM.
 echo
 
-sudo apt install curl
+sudo $INSTALLER install curl
 
 echo
 if [[ $all = 1 ]]; then
@@ -125,19 +125,24 @@ else
         fi
     done
 
-    ok=0
-    while [ $ok = 0 ]
-    do
-        echo -n "Install AWS CLI [y/n]: "
-        read INSTALL_AWS
-        if [[ "$INSTALL_AWS" = "y" || "$INSTALL_AWS" = "yes" || "$INSTALL_AWS" = "Y" || "$INSTALL_AWS" = "YES" || "$INSTALL_AWS" = "Yes" ]]; then
-            INSTALL_AWS="y"
-            ok=1
-        elif [[ "$INSTALL_AWS" = "n" || "$INSTALL_AWS" = "no" || "$INSTALL_AWS" = "N" || "$INSTALL_AWS" = "NO" || "$INSTALL_AWS" = "No" ]]; then
-            INSTALL_AWS="n"
-            ok=1
-        fi
-    done
+    if [[ "$ID" = "amzn" ]]; then
+        echo Running on AWS, not installing AWS CLI
+        INSTALL_AWS="n"
+    else
+        ok=0
+        while [ $ok = 0 ]
+        do
+            echo -n "Install AWS CLI [y/n]: "
+            read INSTALL_AWS
+            if [[ "$INSTALL_AWS" = "y" || "$INSTALL_AWS" = "yes" || "$INSTALL_AWS" = "Y" || "$INSTALL_AWS" = "YES" || "$INSTALL_AWS" = "Yes" ]]; then
+                INSTALL_AWS="y"
+                ok=1
+            elif [[ "$INSTALL_AWS" = "n" || "$INSTALL_AWS" = "no" || "$INSTALL_AWS" = "N" || "$INSTALL_AWS" = "NO" || "$INSTALL_AWS" = "No" ]]; then
+                INSTALL_AWS="n"
+                ok=1
+            fi
+        done
+    fi
 
     ok=0
     while [ $ok = 0 ]
@@ -245,8 +250,8 @@ if [[ "$INSTALL_KUBE" = "n" ]]; then
 else
     echo Installing Kubernetes CLI
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    sudo mv kubectl /usr/local/bin
-    sudo chmod u+x /usr/local/bin/kubectl
+    sudo mv kubectl /usr/bin
+    sudo chmod u+x /usr/bin/kubectl
 fi
 
 # #sudo $INSTALLER update -y
@@ -342,7 +347,7 @@ else
 fi
 
 echo
-if [[ "$INSTALL_Suricata" = "n" ]]; then
+if [[ "$INSTALL_SURICATA" = "n" ]]; then
     echo Skipping Suricata
 else
     echo Installing Suricata
@@ -358,8 +363,8 @@ else
         curl -OL https://www.openinfosecfoundation.org/download/suricata-5.0.0.tar.gz
         tar xvf suricata-5.0.0.tar.gz
         cd suricata-5.0.0
-        ./configure --sysconfdir=/etc --localstatedir=/var
-        make
+        sudo ./configure --sysconfdir=/etc --localstatedir=/var
+        sudo make
         sudo make install
         sudo make install-conf
     fi
