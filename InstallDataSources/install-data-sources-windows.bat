@@ -115,7 +115,7 @@ if /i "%INSTALL_KUBE%"=="n" (
 ) else (
     echo Installing KubeCTL.
     set KUBECTL_VERSION=v1.28.3
-    set kubeDir="~\KubeCTL"
+    set kubeDir=%HOMEPATH%\KubeCTL
     curl -LO https://dl.k8s.io/release/!KUBECTL_VERSION!/bin/windows/amd64/kubectl.exe
     if not exist !kubeDir! (
         mkdir !kubeDir!
