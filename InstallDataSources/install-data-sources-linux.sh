@@ -201,8 +201,6 @@ else
     done
 fi
 
-echo Suricata selected
-
 if [[ "$INSTALL_OPENVAS" = "y" ]]; then
     ok=0
     while [ $ok = 0 ]
@@ -268,7 +266,7 @@ if [[ "$INSTALL_AWS" = "n" ]]; then
 else
     echo Installing AWS CLI
     sudo hwclock -s
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
     unzip awscliv2.zip
     sudo ./aws/install
 fi
@@ -314,6 +312,7 @@ else
             echo Unable to stat Docker service.
         fi
 
+        sleep 5
         NewDockerStatus=$(sudo docker ps)
         if [ -z "$DOCKERSTATUS" ]; then
             echo Unable to start Docker. Skipping OpenVas

@@ -1,23 +1,29 @@
 #!/usr/bin/sh
 
+source ~/.bashrc
+
+export OV_TARGET_LIST="192.168.50.141/24"
+
 if [ $# -ne 0 ]; then
   echo "Usage: $0"
   exit 1;
 fi
 
+echo $OV_USER
+
 if [ ! -v OV_USER ]; then
   echo "OV_USER not set"
-  exit 0;
+  exit 1;
 fi
 
 if [ ! -v OV_PASS ]; then
   echo "OV_PASS not set"
-  exit 0;
+  exit 1;
 fi
 
 if [ ! -v OV_TARGET_LIST ]; then
   echo "OV_TARGET_LIST not set"
-  exit 0;
+  exit 1;
 fi
 
 mkdir -p data
@@ -37,7 +43,7 @@ if [ "$OV_STATUS" = "201" ]; then
     echo "create_target SUCCESS" >> $OV_LOGFILE
 else
     echo "create_target FAIL" >> $OV_LOGFILE
-    exit 1;
+    exit 1
 fi;
 
 
@@ -52,7 +58,7 @@ if [ "$OV_STATUS" = "201" ]; then
     echo "create_task SUCCESS" >> $OV_LOGFILE
 else
     echo "create_task FAIL" >> $OV_LOGFILE
-    exit 1;
+    exit 1
 fi;
 
 # Start Task using task id
@@ -67,7 +73,7 @@ if [ "$OV_STATUS" = "202" ]; then
     echo "start_task SUCCESS" >> $OV_LOGFILE
 else
     echo "start_task FAIL" >> $OV_LOGFILE
-    exit 1;
+    exit 1
 fi;
 
 # Get status of task using task id
@@ -92,5 +98,5 @@ docker exec --user gvm $OV_CONTAINER gvm-cli --gmp-username $OV_USER --gmp-passw
 echo "End scan at $(date)" >> $OV_LOGFILE
 
 cat data/detail.xml
-exit 0;
+exit 0
 
